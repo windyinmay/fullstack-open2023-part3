@@ -1,12 +1,12 @@
-const http = require('http')
+// const http = require('http')
 const express = require('express')
-const { response } = require('express')
 // const app = http.createServer((request, response) => {
 //     response.writeHead(200, {'Content-Type': 'application/json'})
 //     response.end(JSON.stringify(persons))
 // })
-
 const app = express()
+app.use(express.json())
+
 let persons = [
     {
         id: 1,
@@ -29,16 +29,16 @@ let persons = [
         number: '39-23-6423122'
     }
 ]
-
+//all
 app.get('/', (req, res) => {
     res.send('<h1>Fullstack Open - Part3<h1>')
 })
-
+//get all persons
 app.get('/api/persons', (req, res) => {
     res.json(persons)
 })
 
-
+//get info of person with id
 app.get('/api/persons/:id', (req, res) => {
     const id = Number(req.params.id)
     const person = persons.find(person => person.id === id)
@@ -50,20 +50,49 @@ app.get('/api/persons/:id', (req, res) => {
         res.status(404).send('NOT FOUND')
     }
 })
-
+// delete person with id
 app.delete('/api/persons/:id', (req, res) => {
     const id = Number(req.params.id)
     persons = persons.filter(p => p.id !== id)
 
     res.status(204).end()
 })
-
 //show info
 app.get('/info', (req,res) => {
     const date = new Date()
     res.send(`Phonebook has info for ${persons.length} people
     <br/> <br/>
     ${date}`)
+})
+const generatedId = () => {
+    const maxId = persons.length > 0 
+    ? Math.max(...persons.map(p => p.id)) 
+    : 0
+    console.log(maxId)
+    return maxId + 1
+}
+app.post('/api/persons', (req,res) => {
+    const body = req.body
+    // console.log(body)
+    if(!body.name || !body.number) {
+        return res.status(400).json({
+            error: 'The name of number is missing'
+        })
+    }
+
+    if(body.name) {
+        return res.status(400).json({
+            error: 'Name must be unique'
+        })
+    }
+    const person = {
+        name: body.name,
+        number: body.number,
+        id: generatedId()
+    }
+    persons = persons.concat(person)
+    console.log(person)
+    res.json(person)
 })
 const PORT = 3001
 app.listen(PORT)
