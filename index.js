@@ -4,9 +4,12 @@ const express = require('express')
 //     response.writeHead(200, {'Content-Type': 'application/json'})
 //     response.end(JSON.stringify(persons))
 // })
+const morgan = require('morgan')
 const app = express()
 app.use(express.json())
-
+//setup the logger
+morgan.token('req-body', (req) => JSON.stringify(req.body))
+app.use(morgan(':method :url :status :res[content-length] - :response-time ms :req-body'))
 let persons = [
     {
         id: 1,
@@ -71,16 +74,17 @@ const generatedId = () => {
     console.log(maxId)
     return maxId + 1
 }
-app.post('/api/persons', (req,res) => {
+app.post('/api/persons', (req,res, next) => {
     const body = req.body
-    // console.log(body)
+    console.log(body)
     if(!body.name || !body.number) {
         return res.status(400).json({
             error: 'The name of number is missing'
         })
     }
-
-    if(body.name) {
+    const getNames = persons.map(p => p.name)
+    console.log(getNames)
+    if(getNames.includes(body.name)) {
         return res.status(400).json({
             error: 'Name must be unique'
         })
