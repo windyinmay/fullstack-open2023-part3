@@ -17,7 +17,11 @@ mongoose
 
 const phonebookSchema = new mongoose.Schema({
   //   id: Number,
-  name: String,
+  name: {
+    type: String,
+    minLength: 3,
+    required: true,
+  },
   number: String,
 });
 phonebookSchema.set("toJSON", {
