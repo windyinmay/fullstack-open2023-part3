@@ -1,4 +1,5 @@
 // const http = require('http')
+require("dotenv").config();
 const express = require("express");
 // const app = http.createServer((request, response) => {
 //     response.writeHead(200, {'Content-Type': 'application/json'})
@@ -6,11 +7,14 @@ const express = require("express");
 // })
 const morgan = require("morgan");
 const cors = require("cors");
+// const password = process.argv[2];
 const app = express();
 // const app1 = http.createServer((req, res) => {
 //   res.writeHead(200, { "Content-Type": "text/plain" });
 //   res.end("Hello World");
 // });
+const PhoneBook = require("./models/person");
+
 app.use(express.json());
 app.use(express.static("build"));
 app.use(cors());
@@ -21,6 +25,7 @@ app.use(
     ":method :url :status :res[content-length] - :response-time ms :req-body"
   )
 );
+
 let persons = [
   {
     id: 1,
@@ -43,27 +48,33 @@ let persons = [
     number: "39-23-6423122",
   },
 ];
+
 //all
 app.get("/", (req, res) => {
   res.send("<h1>Fullstack Open - Part3<h1>");
   // res.json(persons);
 });
+
 //get all persons
 app.get("/api/persons", (req, res) => {
-  res.json(persons);
+  PhoneBook.find({}).then((persons) => {
+    res.json(persons);
+  });
 });
 
 //get info of person with id
 app.get("/api/persons/:id", (req, res) => {
-  const id = Number(req.params.id);
-  const person = persons.find((person) => person.id === id);
-  console.log(person);
-  if (person) {
-    res.json(person);
-  } else {
-    // res.statusMessage = ""
-    res.status(404).send("NOT FOUND");
-  }
+  // const id = Number(req.params.id);
+  // const person = persons.find((person) => person.id === id);
+  // console.log(person);
+  PhoneBook.findById(req.params.id).then((person) => {
+    if (person) {
+      res.json(person);
+    } else {
+      // res.statusMessage = ""
+      res.status(404).send("NOT FOUND");
+    }
+  });
 });
 // delete person with id
 app.delete("/api/persons/:id", (req, res) => {
@@ -86,7 +97,7 @@ const generatedId = () => {
 };
 app.post("/api/persons", (req, res, next) => {
   const body = req.body;
-  console.log(body);
+  // console.log(body);
   if (!body.name || !body.number) {
     return res.status(400).json({
       error: "The name of number is missing",
@@ -99,16 +110,25 @@ app.post("/api/persons", (req, res, next) => {
       error: "Name must be unique",
     });
   }
-  const person = {
+  // const person = {
+  //   name: body.name,
+  //   number: body.number,
+  //   id: generatedId(),
+  // };
+  // persons = persons.concat(person);
+  // console.log(person);
+  // res.json(person);
+  const person = new PhoneBook({
     name: body.name,
     number: body.number,
     id: generatedId(),
-  };
-  persons = persons.concat(person);
-  console.log(person);
-  res.json(person);
+  });
+
+  person.save().then((savedPerson) => {
+    res.json(savedPerson);
+  });
 });
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
