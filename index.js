@@ -12,6 +12,7 @@ const app = express();
 //   res.end("Hello World");
 // });
 app.use(express.json());
+app.use(express.static("build"));
 app.use(cors());
 //setup the logger
 morgan.token("req-body", (req) => JSON.stringify(req.body));
@@ -45,6 +46,7 @@ let persons = [
 //all
 app.get("/", (req, res) => {
   res.send("<h1>Fullstack Open - Part3<h1>");
+  // res.json(persons);
 });
 //get all persons
 app.get("/api/persons", (req, res) => {
